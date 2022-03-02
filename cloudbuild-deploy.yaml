@@ -1,0 +1,37 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - "-t"
+      - "gcr.io/$PROJECT_ID/sherpa-next:$SHORT_SHA"
+      - "-f"
+      - Dockerfile
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - gcr.io/$PROJECT_ID/sherpa-next
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - deploy
+      - "${_CLOUD_RUN_DEPLOY_NAME}"
+      - "--image"
+      - "gcr.io/${PROJECT_ID}/sherpa-next:${SHORT_SHA}"
+      - "--region"
+      - us-central1
+      - "--tag"
+      - "${_BRANCH_COMMIT_TAG_SANITIZED}"
+    id: publish
+timeout: 1800s
+options:
+  machineType: "E2_HIGHCPU_8"
+  dynamic_substitutions: true
+substitutions:
+  #Combined traffic tag and service name cannot exceed 46 characters.
+  # 46 chars minus (rt-prod (service name) + - + shortSha) leaves 31 chars, truncating to 25 for safety
+  _BRANCH_NAME_SHORT: ${BRANCH_NAME:0:25}
+  _BRANCH_COMMIT_TAG: ${_BRANCH_NAME_SHORT}-${SHORT_SHA}
+  _BRANCH_COMMIT_TAG_LOWERCASE: ${_BRANCH_COMMIT_TAG,,}
+  _BRANCH_COMMIT_TAG_SANITIZED: ${_BRANCH_COMMIT_TAG_LOWERCASE/:/-} #it would be better if we could regex and remove all non alphanumerics
+
