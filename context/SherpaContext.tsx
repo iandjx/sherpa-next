@@ -2,7 +2,7 @@ import React, { createContext, ReactNode, useEffect } from "react";
 import { useWeb3React } from "@web3-react/core";
 import { useState } from "react";
 import { injected } from "../connectors";
-import SherpaSDK from "sherpa";
+import * as sherpa from "@iandjx/sherpasdk";
 const netId = 43113;
 const AVAXContracts = [
   {
@@ -46,7 +46,7 @@ const SherpaContextProvider = ({ children }: SherpaContextProps) => {
   useEffect(() => {
     if (active) {
       console.log("netid", netId);
-      const client = new SherpaSDK(netId, library);
+      const client = new sherpa.SherpaSDK(netId, library);
       console.log(client);
       setSherpaClient(client);
     }
